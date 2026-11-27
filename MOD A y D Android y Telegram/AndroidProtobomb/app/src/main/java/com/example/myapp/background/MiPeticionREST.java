@@ -24,7 +24,7 @@ public class MiPeticionREST extends AsyncTask<String,String,String> {
 
     // Aby 8990981558:AAExkbtqg1JilrYUHVmO-oMA7R3373kQ7Bk 8338452778
     // Isabel 8178912720:AAGbjJ7dC-GM72qG8FVP27D8NlPL8J4GxYo 8988285896
-    private String botTel = "8178912720:AAGbjJ7dC-GM72qG8FVP27D8NlPL8J4GxYo";
+    private String botTel = "8990981558:AAExkbtqg1JilrYUHVmO-oMA7R3373kQ7Bk";
 
     public MiPeticionREST(TextView output){
         offset = 0;
@@ -48,7 +48,7 @@ public class MiPeticionREST extends AsyncTask<String,String,String> {
         {
 
             if( info[0].contains("POST")) {
-                URL url = new URL("http://" + serverIp + ":3010");
+                URL url = new URL("http://" + serverIp + ":3010/users");
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setDoOutput(true);
                 conn.setRequestMethod("POST");
@@ -59,8 +59,11 @@ public class MiPeticionREST extends AsyncTask<String,String,String> {
                 os.write(input.getBytes());
                 os.flush();
 
-                if (conn.getResponseCode() != HttpURLConnection.HTTP_CREATED) {
-                    res = "error";
+                int code = conn.getResponseCode();
+                if (code < 200 || code >= 300) {
+                    res = "error (" + code + ")";
+                } else {
+                    res = "ok (" + code + ")";
                 }
 
                 conn.disconnect();
