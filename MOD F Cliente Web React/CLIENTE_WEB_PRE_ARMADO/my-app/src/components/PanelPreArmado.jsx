@@ -41,12 +41,24 @@ export default function PanelPreArmado() {
   const peticionEnCursoRef = useRef(false);
   const estadoPrevioRef = useRef(undefined);
   const timeoutCambioRef = useRef(null);
+  const ultimoDisparoImagenRef = useRef(null);
+  const blobUrlActualRef = useRef(null);
+
+  const reemplazarImagenInfo = useCallback((nuevaInfo) => {
+    if (blobUrlActualRef.current && blobUrlActualRef.current !== nuevaInfo?.src) {
+      URL.revokeObjectURL(blobUrlActualRef.current);
+    }
+    blobUrlActualRef.current = nuevaInfo?.esBlob ? nuevaInfo.src : null;
+    setImagenInfo(nuevaInfo);
+  }, []);
 
   const aplicarImagenDesdeBD = useCallback((ultima, comando, forzarActualizacion = false) => {
     const nuevaImagenInfo = ultima
       ? {
           src: ultima.url,
+          urlOriginal: ultima.urlOriginal ?? ultima.url,
           esBase64: false,
+          esBlob: Boolean(ultima.esBlob),
           id: ultima.id,
           info: ultima.info,
         }
@@ -61,7 +73,7 @@ export default function PanelPreArmado() {
 
     setPreArmado(true);
     setComandoActual(comando);
-    setImagenInfo(nuevaImagenInfo);
+    reemplazarImagenInfo(nuevaImagenInfo);
 
     if (cambioAEncendido) {
       setHoraDeteccion(new Date().toLocaleTimeString());
@@ -71,9 +83,9 @@ export default function PanelPreArmado() {
       setVersionImagen(Date.now());
       setErrorImagen(false);
     }
-  }, []);
+  }, [reemplazarImagenInfo]);
 
-  const fetchData = useCallback(async (forzarDirecto = false) => {
+  const fetchData = useCallback(async (forzarDirecto = false, forzarRecargaImagen = false) => {
     if (peticionEnCursoRef.current) {
       return;
     }
@@ -86,7 +98,7 @@ export default function PanelPreArmado() {
 
       if (usarDirecto) {
         const ultima = await consultarUltimaImagenBD();
-        aplicarImagenDesdeBD(ultima, 'Consulta directa a BD (/metrics)', forzarDirecto);
+        aplicarImagenDesdeBD(ultima, 'Consulta directa a BD (/imagen1)', forzarDirecto || forzarRecargaImagen);
         setAviso(null);
         setError(null);
         return;
@@ -96,8 +108,8 @@ export default function PanelPreArmado() {
 
       if (resultadoEstado.noEncontrado) {
         const ultima = await consultarUltimaImagenBD();
-        aplicarImagenDesdeBD(ultima, 'Consulta directa a BD (/metrics)');
-        setAviso('Ruta /estado no encontrada (404); cargando imagen directamente desde /metrics.');
+        aplicarImagenDesdeBD(ultima, 'Consulta directa a BD (/imagen1)', forzarRecargaImagen);
+        setAviso('Ruta /estado no encontrada (404); cargando imagen directamente desde /imagen1.');
         setError(null);
         return;
       }
@@ -146,10 +158,11 @@ export default function PanelPreArmado() {
         setPreArmado(false);
         setComandoActual(null);
         setHoraDeteccion(null);
-        setImagenInfo(null);
+        reemplazarImagenInfo(null);
         setErrorImagen(false);
         preArmadoAnteriorRef.current = false;
         imagenKeyAnteriorRef.current = null;
+        ultimoDisparoImagenRef.current = null;
         setError(null);
         return;
       }
@@ -163,15 +176,24 @@ export default function PanelPreArmado() {
         setHoraDeteccion(new Date().toLocaleTimeString());
       }
 
-      const { nuevaImagenInfo, key } = await resolverImagenDesdeEstado(estado);
-      const cambioImagen = key !== null && key !== imagenKeyAnteriorRef.current;
+      const claveDisparo = `${estado.estadoValor}|${estado.imagenId ?? 'latest'}|${estado.actualizadoEn ?? ''}`;
+      const debePedirImagen =
+        forzarRecargaImagen ||
+        cambioAEncendido ||
+        claveDisparo !== ultimoDisparoImagenRef.current;
 
-      imagenKeyAnteriorRef.current = key;
-      setImagenInfo(nuevaImagenInfo);
+      if (debePedirImagen) {
+        ultimoDisparoImagenRef.current = claveDisparo;
+        const { nuevaImagenInfo, key } = await resolverImagenDesdeEstado(estado);
+        const cambioImagen = key !== null && key !== imagenKeyAnteriorRef.current;
 
-      if (cambioAEncendido || cambioImagen) {
-        setVersionImagen(Date.now());
-        setErrorImagen(false);
+        imagenKeyAnteriorRef.current = key;
+        reemplazarImagenInfo(nuevaImagenInfo);
+
+        if (cambioAEncendido || cambioImagen || forzarRecargaImagen) {
+          setVersionImagen(Date.now());
+          setErrorImagen(false);
+        }
       }
 
       setError(null);
@@ -181,7 +203,7 @@ export default function PanelPreArmado() {
       setCargando(false);
       peticionEnCursoRef.current = false;
     }
-  }, [modoDirectoBD, aplicarImagenDesdeBD]);
+  }, [modoDirectoBD, aplicarImagenDesdeBD, reemplazarImagenInfo]);
 
   const alternarModoDirectoBD = () => {
     if (modoSimulacion) {
@@ -194,16 +216,17 @@ export default function PanelPreArmado() {
       setPreArmado(false);
       setComandoActual(null);
       setHoraDeteccion(null);
-      setImagenInfo(null);
+      reemplazarImagenInfo(null);
       setErrorImagen(false);
       setAviso(null);
       preArmadoAnteriorRef.current = false;
       imagenKeyAnteriorRef.current = null;
+      ultimoDisparoImagenRef.current = null;
       return;
     }
 
     setModoDirectoBD(true);
-    fetchData(true);
+    fetchData(true, true);
   };
 
   const alternarSimulacion = () => {
@@ -218,9 +241,10 @@ export default function PanelPreArmado() {
         setPreArmado(true);
         setComandoActual('/prearmado (simulado)');
         setHoraDeteccion(new Date().toLocaleTimeString());
-        setImagenInfo({
+        reemplazarImagenInfo({
           src: heroImg,
           esBase64: true,
+          esBlob: false,
           id: 1,
           info: 'Imagen simulada desde BD',
         });
@@ -229,15 +253,17 @@ export default function PanelPreArmado() {
         setAviso(null);
         preArmadoAnteriorRef.current = true;
         imagenKeyAnteriorRef.current = 'simulado';
+        ultimoDisparoImagenRef.current = 'simulado';
       } else {
         setEstadoServidor(0);
         setPreArmado(false);
         setComandoActual(null);
         setHoraDeteccion(null);
-        setImagenInfo(null);
+        reemplazarImagenInfo(null);
         setErrorImagen(false);
         preArmadoAnteriorRef.current = false;
         imagenKeyAnteriorRef.current = null;
+        ultimoDisparoImagenRef.current = null;
       }
       return siguiente;
     });
@@ -247,6 +273,10 @@ export default function PanelPreArmado() {
     return () => {
       if (timeoutCambioRef.current) {
         clearTimeout(timeoutCambioRef.current);
+      }
+      if (blobUrlActualRef.current) {
+        URL.revokeObjectURL(blobUrlActualRef.current);
+        blobUrlActualRef.current = null;
       }
     };
   }, []);
@@ -278,7 +308,7 @@ export default function PanelPreArmado() {
   };
 
   const srcImagenFinal = imagenInfo
-    ? (imagenInfo.esBase64
+    ? (imagenInfo.esBase64 || imagenInfo.esBlob
       ? imagenInfo.src
       : `${imagenInfo.src}${imagenInfo.src.includes('?') ? '&' : '?'}t=${versionImagen}`)
     : null;
@@ -294,7 +324,7 @@ export default function PanelPreArmado() {
         intervaloMs={intervaloMs}
         onCambiarIntervalo={setIntervaloMs}
         onAlternarPolling={() => setPollingActivo((prev) => !prev)}
-        onConsultarAhora={() => fetchData(modoDirectoBD)}
+        onConsultarAhora={() => fetchData(modoDirectoBD, true)}
         onLimpiarHistorial={limpiarHistorial}
         cargando={cargando}
         totalPeticiones={totalPeticiones}
@@ -351,7 +381,7 @@ export default function PanelPreArmado() {
         <button
           type="button"
           className="btn"
-          onClick={() => fetchData(modoDirectoBD)}
+          onClick={() => fetchData(modoDirectoBD, true)}
           disabled={cargando || modoSimulacion}
         >
           {cargando ? 'Cargando...' : '🔄 Consultar ahora'}

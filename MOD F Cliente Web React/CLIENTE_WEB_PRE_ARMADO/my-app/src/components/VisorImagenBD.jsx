@@ -29,7 +29,7 @@ export default function VisorImagenBD({
         />
       ) : (
         <a
-          href={srcImagenFinal}
+          href={imagenInfo.urlOriginal ?? srcImagenFinal}
           target="_blank"
           rel="noreferrer"
           title="Abrir imagen en tamaño completo"
