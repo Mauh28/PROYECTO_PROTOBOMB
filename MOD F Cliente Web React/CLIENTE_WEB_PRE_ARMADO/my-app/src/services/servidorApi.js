@@ -15,9 +15,9 @@ export function leerEstadoPreArmado(rawData) {
 
   const estadoValor =
     registro.estado !== undefined &&
-    registro.estado !== null &&
-    registro.estado !== '' &&
-    !Number.isNaN(Number(registro.estado))
+      registro.estado !== null &&
+      registro.estado !== '' &&
+      !Number.isNaN(Number(registro.estado))
       ? Number(registro.estado)
       : null;
 

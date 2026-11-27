@@ -15,7 +15,7 @@ export default function PanelPreArmado() {
   const [imagenInfo, setImagenInfo] = useState(null);
   const [versionImagen, setVersionImagen] = useState(() => Date.now());
   const [cargandoImagen, setCargandoImagen] = useState(false);
-  const [errorImagen, setErrorImagen] = useState(false);
+  const [errorImagen, setErrorImagen] = useState(false);/*  */
   const [errorImagenPeticion, setErrorImagenPeticion] = useState(null);
 
   const [estadoServidor, setEstadoServidor] = useState(null);
