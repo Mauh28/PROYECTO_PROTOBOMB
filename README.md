@@ -26,6 +26,10 @@ J1 y J2 <── chats privados ──> Bot <──> App Android ── HTTP ─�
 J2 ──> Manual web estático
 ```
 
+## Estructura del modulo ARD/ESP32
+
+![Estructura del modulo ARD/ESP32](./MOD%20C%20Arduino/BombaARD_POST_BTv1/diagrama_esp32.svg)
+
 ## Puesta en marcha
 
 El repositorio tiene una integración parcial. Los pasos siguientes distinguen qué se puede probar hoy y qué requiere el trabajo de los módulos.
