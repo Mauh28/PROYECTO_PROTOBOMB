@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-// Equivalente a MyTimer.jsx: cronómetro en vivo independiente
+// Cronómetro en vivo que inicia en 00:00 cuando Android activa el cambio de estado
 export default function Cronometro() {
   const [segundos, setSegundos] = useState(0);
 
@@ -12,11 +12,14 @@ export default function Cronometro() {
     return () => clearInterval(timer);
   }, []);
 
+  const minutos = String(Math.floor(segundos / 60)).padStart(2, '0');
+  const segs = String(segundos % 60).padStart(2, '0');
+
   return (
     <div className="caja cronometro">
-      <h2>⏱️ Cronómetro en vivo</h2>
+      <h2>⏱️ Cronómetro</h2>
       <p className="tiempo">
-        {segundos} <span className="unidad">segundos</span>
+        {minutos}:{segs} <span className="unidad">({segundos} s)</span>
       </p>
     </div>
   );

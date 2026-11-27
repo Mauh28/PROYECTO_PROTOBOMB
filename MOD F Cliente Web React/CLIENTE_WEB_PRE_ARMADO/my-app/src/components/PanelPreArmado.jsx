@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import heroImg from '../assets/hero.png';
+import Cronometro from './Cronometro.jsx';
 import MonitorEstado from './MonitorEstado.jsx';
 import VisorImagenBD from './VisorImagenBD.jsx';
 import {
@@ -7,24 +7,22 @@ import {
   INTERVALO_MS,
   consultarEstadoServidor,
   consultarUltimaImagenBD,
-  resolverImagenDesdeEstado,
 } from '../services/servidorApi.js';
 
-// Equivalente a MyTable.jsx: consulta el estado y muestra la imagen de la BD
 export default function PanelPreArmado() {
-  const [estadoServidor, setEstadoServidor] = useState(null);
-  const [estadoAnterior, setEstadoAnterior] = useState(null);
-  const [preArmado, setPreArmado] = useState(false);
-  const [comandoActual, setComandoActual] = useState(null);
-  const [horaDeteccion, setHoraDeteccion] = useState(null);
+  const [cambioDetectado, setCambioDetectado] = useState(false);
+
   const [imagenInfo, setImagenInfo] = useState(null);
   const [versionImagen, setVersionImagen] = useState(() => Date.now());
+  const [cargandoImagen, setCargandoImagen] = useState(false);
   const [errorImagen, setErrorImagen] = useState(false);
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState(null);
-  const [aviso, setAviso] = useState(null);
+  const [errorImagenPeticion, setErrorImagenPeticion] = useState(null);
+
+  const [estadoServidor, setEstadoServidor] = useState(null);
+  const [estadoAnterior, setEstadoAnterior] = useState(null);
+  const [cargandoEstado, setCargandoEstado] = useState(false);
+  const [errorEstado, setErrorEstado] = useState(null);
   const [modoSimulacion, setModoSimulacion] = useState(false);
-  const [modoDirectoBD, setModoDirectoBD] = useState(false);
   const [pollingActivo, setPollingActivo] = useState(true);
   const [intervaloMs, setIntervaloMs] = useState(INTERVALO_MS);
   const [totalPeticiones, setTotalPeticiones] = useState(0);
@@ -36,12 +34,11 @@ export default function PanelPreArmado() {
   const [infoServidor, setInfoServidor] = useState(null);
   const [actualizadoEnServidor, setActualizadoEnServidor] = useState(null);
 
-  const preArmadoAnteriorRef = useRef(false);
-  const imagenKeyAnteriorRef = useRef(null);
-  const peticionEnCursoRef = useRef(false);
+  const cambioDetectadoRef = useRef(false);
+  const peticionEstadoEnCursoRef = useRef(false);
+  const peticionImagenEnCursoRef = useRef(false);
   const estadoPrevioRef = useRef(undefined);
   const timeoutCambioRef = useRef(null);
-  const ultimoDisparoImagenRef = useRef(null);
   const blobUrlActualRef = useRef(null);
 
   const reemplazarImagenInfo = useCallback((nuevaInfo) => {
@@ -52,69 +49,57 @@ export default function PanelPreArmado() {
     setImagenInfo(nuevaInfo);
   }, []);
 
-  const aplicarImagenDesdeBD = useCallback((ultima, comando, forzarActualizacion = false) => {
-    const nuevaImagenInfo = ultima
-      ? {
-          src: ultima.url,
-          urlOriginal: ultima.urlOriginal ?? ultima.url,
-          esBase64: false,
-          esBlob: Boolean(ultima.esBlob),
-          id: ultima.id,
-          info: ultima.info,
-        }
-      : null;
-
-    const key = ultima ? `bd|${ultima.id}` : null;
-    const cambioAEncendido = !preArmadoAnteriorRef.current;
-    const cambioImagen = key !== null && key !== imagenKeyAnteriorRef.current;
-
-    preArmadoAnteriorRef.current = true;
-    imagenKeyAnteriorRef.current = key;
-
-    setPreArmado(true);
-    setComandoActual(comando);
-    reemplazarImagenInfo(nuevaImagenInfo);
-
-    if (cambioAEncendido) {
-      setHoraDeteccion(new Date().toLocaleTimeString());
-    }
-
-    if (forzarActualizacion || cambioAEncendido || cambioImagen) {
-      setVersionImagen(Date.now());
-      setErrorImagen(false);
-    }
-  }, [reemplazarImagenInfo]);
-
-  const fetchData = useCallback(async (forzarDirecto = false, forzarRecargaImagen = false) => {
-    if (peticionEnCursoRef.current) {
+  const cargarImagenBD = useCallback(async () => {
+    if (peticionImagenEnCursoRef.current) {
       return;
     }
 
-    peticionEnCursoRef.current = true;
-    const usarDirecto = forzarDirecto || modoDirectoBD;
-
+    peticionImagenEnCursoRef.current = true;
     try {
-      setCargando(true);
+      setCargandoImagen(true);
+      setErrorImagenPeticion(null);
 
-      if (usarDirecto) {
-        const ultima = await consultarUltimaImagenBD();
-        aplicarImagenDesdeBD(ultima, 'Consulta directa a BD (/imagen1)', forzarDirecto || forzarRecargaImagen);
-        setAviso(null);
-        setError(null);
+      const ultima = await consultarUltimaImagenBD();
+      if (!ultima) {
+        reemplazarImagenInfo(null);
+        setErrorImagen(false);
         return;
       }
 
+      reemplazarImagenInfo({
+        src: ultima.url,
+        urlOriginal: ultima.urlOriginal ?? ultima.url,
+        esBase64: false,
+        esBlob: Boolean(ultima.esBlob),
+        id: ultima.id,
+        info: ultima.info,
+      });
+      setVersionImagen(Date.now());
+      setErrorImagen(false);
+    } catch (err) {
+      setErrorImagenPeticion(err.message);
+    } finally {
+      setCargandoImagen(false);
+      peticionImagenEnCursoRef.current = false;
+    }
+  }, [reemplazarImagenInfo]);
+
+  const consultarEstado = useCallback(async () => {
+    if (peticionEstadoEnCursoRef.current) {
+      return;
+    }
+
+    peticionEstadoEnCursoRef.current = true;
+
+    try {
+      setCargandoEstado(true);
       const resultadoEstado = await consultarEstadoServidor();
 
       if (resultadoEstado.noEncontrado) {
-        const ultima = await consultarUltimaImagenBD();
-        aplicarImagenDesdeBD(ultima, 'Consulta directa a BD (/imagen1)', forzarRecargaImagen);
-        setAviso('Ruta /estado no encontrada (404); cargando imagen directamente desde /imagen1.');
-        setError(null);
+        setErrorEstado('Ruta /estado no encontrada (404)');
         return;
       }
 
-      setAviso(null);
       const { estado } = resultadoEstado;
       const horaActual = new Date().toLocaleTimeString();
 
@@ -153,124 +138,51 @@ export default function PanelPreArmado() {
       }
 
       setEstadoServidor(estado.estadoValor);
+      setErrorEstado(null);
 
-      if (!estado.preArmado) {
-        setPreArmado(false);
-        setComandoActual(null);
-        setHoraDeteccion(null);
-        reemplazarImagenInfo(null);
-        setErrorImagen(false);
-        preArmadoAnteriorRef.current = false;
-        imagenKeyAnteriorRef.current = null;
-        ultimoDisparoImagenRef.current = null;
-        setError(null);
-        return;
-      }
-
-      const cambioAEncendido = !preArmadoAnteriorRef.current;
-      preArmadoAnteriorRef.current = true;
-      setPreArmado(true);
-      setComandoActual(estado.comando);
-
-      if (cambioAEncendido) {
-        setHoraDeteccion(new Date().toLocaleTimeString());
-      }
-
-      const claveDisparo = `${estado.estadoValor}|${estado.imagenId ?? 'latest'}|${estado.actualizadoEn ?? ''}`;
-      const debePedirImagen =
-        forzarRecargaImagen ||
-        cambioAEncendido ||
-        claveDisparo !== ultimoDisparoImagenRef.current;
-
-      if (debePedirImagen) {
-        ultimoDisparoImagenRef.current = claveDisparo;
-        const { nuevaImagenInfo, key } = await resolverImagenDesdeEstado(estado);
-        const cambioImagen = key !== null && key !== imagenKeyAnteriorRef.current;
-
-        imagenKeyAnteriorRef.current = key;
-        reemplazarImagenInfo(nuevaImagenInfo);
-
-        if (cambioAEncendido || cambioImagen || forzarRecargaImagen) {
-          setVersionImagen(Date.now());
-          setErrorImagen(false);
+      const activo = Boolean(estado.preArmado);
+      if (activo) {
+        if (!cambioDetectadoRef.current) {
+          cambioDetectadoRef.current = true;
+          setCambioDetectado(true);
+          reemplazarImagenInfo(null);
         }
+      } else if (cambioDetectadoRef.current) {
+        cambioDetectadoRef.current = false;
+        setCambioDetectado(false);
+        cargarImagenBD();
       }
-
-      setError(null);
     } catch (err) {
-      setError(err.message);
+      setErrorEstado(err.message);
     } finally {
-      setCargando(false);
-      peticionEnCursoRef.current = false;
+      setCargandoEstado(false);
+      peticionEstadoEnCursoRef.current = false;
     }
-  }, [modoDirectoBD, aplicarImagenDesdeBD, reemplazarImagenInfo]);
-
-  const alternarModoDirectoBD = () => {
-    if (modoSimulacion) {
-      setModoSimulacion(false);
-    }
-
-    if (modoDirectoBD) {
-      setModoDirectoBD(false);
-      setEstadoServidor(null);
-      setPreArmado(false);
-      setComandoActual(null);
-      setHoraDeteccion(null);
-      reemplazarImagenInfo(null);
-      setErrorImagen(false);
-      setAviso(null);
-      preArmadoAnteriorRef.current = false;
-      imagenKeyAnteriorRef.current = null;
-      ultimoDisparoImagenRef.current = null;
-      return;
-    }
-
-    setModoDirectoBD(true);
-    fetchData(true, true);
-  };
+  }, [cargarImagenBD, reemplazarImagenInfo]);
 
   const alternarSimulacion = () => {
-    if (modoDirectoBD) {
-      setModoDirectoBD(false);
-    }
-
     setModoSimulacion((prev) => {
       const siguiente = !prev;
       if (siguiente) {
-        setEstadoServidor(1);
-        setPreArmado(true);
-        setComandoActual('/prearmado (simulado)');
-        setHoraDeteccion(new Date().toLocaleTimeString());
-        reemplazarImagenInfo({
-          src: heroImg,
-          esBase64: true,
-          esBlob: false,
-          id: 1,
-          info: 'Imagen simulada desde BD',
-        });
-        setErrorImagen(false);
-        setError(null);
-        setAviso(null);
-        preArmadoAnteriorRef.current = true;
-        imagenKeyAnteriorRef.current = 'simulado';
-        ultimoDisparoImagenRef.current = 'simulado';
-      } else {
-        setEstadoServidor(0);
-        setPreArmado(false);
-        setComandoActual(null);
-        setHoraDeteccion(null);
+        cambioDetectadoRef.current = true;
+        setCambioDetectado(true);
         reemplazarImagenInfo(null);
-        setErrorImagen(false);
-        preArmadoAnteriorRef.current = false;
-        imagenKeyAnteriorRef.current = null;
-        ultimoDisparoImagenRef.current = null;
+      } else {
+        cambioDetectadoRef.current = false;
+        setCambioDetectado(false);
+        cargarImagenBD();
       }
       return siguiente;
     });
   };
 
   useEffect(() => {
+    const timeoutImagen = setTimeout(() => {
+      cargarImagenBD();
+    }, 0);
+
     return () => {
+      clearTimeout(timeoutImagen);
       if (timeoutCambioRef.current) {
         clearTimeout(timeoutCambioRef.current);
       }
@@ -279,7 +191,7 @@ export default function PanelPreArmado() {
         blobUrlActualRef.current = null;
       }
     };
-  }, []);
+  }, [cargarImagenBD]);
 
   useEffect(() => {
     if (modoSimulacion || !pollingActivo) {
@@ -287,18 +199,18 @@ export default function PanelPreArmado() {
     }
 
     const timeoutInicial = setTimeout(() => {
-      fetchData();
+      consultarEstado();
     }, 0);
 
     const interval = setInterval(() => {
-      fetchData();
+      consultarEstado();
     }, intervaloMs);
 
     return () => {
       clearTimeout(timeoutInicial);
       clearInterval(interval);
     };
-  }, [modoSimulacion, pollingActivo, intervaloMs, fetchData]);
+  }, [modoSimulacion, pollingActivo, intervaloMs, consultarEstado]);
 
   const limpiarHistorial = () => {
     setHistorialCambios([]);
@@ -313,20 +225,102 @@ export default function PanelPreArmado() {
       : `${imagenInfo.src}${imagenInfo.src.includes('?') ? '&' : '?'}t=${versionImagen}`)
     : null;
 
+  if (cambioDetectado) {
+    return (
+      <>
+        <Cronometro />
+        {modoSimulacion && (
+          <div className="acciones">
+            <button
+              type="button"
+              className="btn btn-secundario"
+              onClick={alternarSimulacion}
+            >
+              Detener simulación (volver a imagen)
+            </button>
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
+      <h1>Panel de Pre-Armado</h1>
+      <p className="servidor-url">Servidor: {BASE_URL} (GET /imagen1 · GET /estado)</p>
+
+      <div className="caja">
+        <h2>🖼️ Imagen de Pre-Armado (Base de Datos)</h2>
+
+        <div className="estado-badge estado-espera">
+          {estadoServidor !== null
+            ? `⚪ En espera de cambio desde Android (estado = ${estadoServidor})`
+            : '⚪ En espera de cambio desde Android'}
+        </div>
+
+        {imagenInfo && (imagenInfo.id || imagenInfo.info) && (
+          <p className="imagen-meta">
+            {imagenInfo.id ? `Registro BD #${imagenInfo.id}` : 'Registro BD'}
+            {imagenInfo.info ? ` — ${imagenInfo.info}` : ''}
+          </p>
+        )}
+
+        {cargandoImagen && (
+          <p className="mensaje-info">Solicitando imagen al servidor ({BASE_URL})...</p>
+        )}
+        {errorImagenPeticion && (
+          <p className="mensaje-error">⚠️ Error al pedir imagen: {errorImagenPeticion}</p>
+        )}
+
+        <VisorImagenBD
+          cargandoImagen={cargandoImagen}
+          imagenInfo={imagenInfo}
+          srcImagenFinal={srcImagenFinal}
+          errorImagen={errorImagen}
+          onErrorImagen={() => setErrorImagen(true)}
+        />
+
+        <div className="acciones">
+          <button
+            type="button"
+            className="btn btn-imagen"
+            onClick={cargarImagenBD}
+            disabled={cargandoImagen}
+          >
+            {cargandoImagen ? 'Cargando imagen...' : '🖼️ Recargar imagen BD'}
+          </button>
+
+          <button
+            type="button"
+            className="btn"
+            onClick={consultarEstado}
+            disabled={cargandoEstado || modoSimulacion}
+          >
+            {cargandoEstado ? 'Consultando...' : '🔄 Consultar /estado ahora'}
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-secundario"
+            onClick={alternarSimulacion}
+          >
+            ⏱️ Simular cambio (ver cronómetro)
+          </button>
+        </div>
+      </div>
+
       <MonitorEstado
         estadoActual={estadoServidor}
         estadoAnterior={estadoAnterior}
         pollingActivo={pollingActivo}
         modoSimulacion={modoSimulacion}
-        modoDirectoBD={modoDirectoBD}
+        modoDirectoBD={false}
         intervaloMs={intervaloMs}
         onCambiarIntervalo={setIntervaloMs}
         onAlternarPolling={() => setPollingActivo((prev) => !prev)}
-        onConsultarAhora={() => fetchData(modoDirectoBD, true)}
+        onConsultarAhora={consultarEstado}
         onLimpiarHistorial={limpiarHistorial}
-        cargando={cargando}
+        cargando={cargandoEstado}
         totalPeticiones={totalPeticiones}
         totalCambios={totalCambios}
         ultimaConsulta={ultimaConsulta}
@@ -335,76 +329,8 @@ export default function PanelPreArmado() {
         historialCambios={historialCambios}
         infoServidor={infoServidor}
         actualizadoEnServidor={actualizadoEnServidor}
-        error={error}
+        error={errorEstado}
       />
-
-      <div className="caja">
-        <h2>🖼️ Estado de Pre-Armado e Imagen</h2>
-
-      <div className={`estado-badge ${preArmado ? 'estado-activo' : 'estado-espera'}`}>
-        {preArmado
-          ? (modoDirectoBD
-            ? '🟢 Imagen desde BD activa'
-            : (estadoServidor !== null ? `🟢 Pre-armado ACTIVO (estado = ${estadoServidor})` : '🟢 Pre-armado ACTIVO'))
-          : (estadoServidor !== null ? `⚪ En espera (estado = ${estadoServidor})` : '⚪ En espera de estado = 1')}
-      </div>
-
-      {preArmado && comandoActual && (
-        <p className="comando-badge">Origen: {comandoActual}</p>
-      )}
-
-      {preArmado && horaDeteccion && (
-        <p className="hora-deteccion">Detectado a las {horaDeteccion}</p>
-      )}
-
-      {preArmado && imagenInfo && (imagenInfo.id || imagenInfo.info) && (
-        <p className="imagen-meta">
-          {imagenInfo.id ? `Registro BD #${imagenInfo.id}` : 'Registro BD'}
-          {imagenInfo.info ? ` — ${imagenInfo.info}` : ''}
-        </p>
-      )}
-
-      {cargando && <p className="mensaje-info">Consultando servidor ({BASE_URL})...</p>}
-      {aviso && !modoSimulacion && <p className="mensaje-info">{aviso}</p>}
-      {error && !modoSimulacion && <p className="mensaje-error">⚠️ Error: {error}</p>}
-
-      <VisorImagenBD
-        preArmado={preArmado}
-        estadoServidor={estadoServidor}
-        imagenInfo={imagenInfo}
-        srcImagenFinal={srcImagenFinal}
-        errorImagen={errorImagen}
-        onErrorImagen={() => setErrorImagen(true)}
-      />
-
-      <div className="acciones">
-        <button
-          type="button"
-          className="btn"
-          onClick={() => fetchData(modoDirectoBD, true)}
-          disabled={cargando || modoSimulacion}
-        >
-          {cargando ? 'Cargando...' : '🔄 Consultar ahora'}
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-imagen"
-          onClick={alternarModoDirectoBD}
-          disabled={cargando}
-        >
-          {modoDirectoBD ? 'Volver a escuchar /estado' : '🖼️ Pedir imagen BD'}
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-secundario"
-          onClick={alternarSimulacion}
-        >
-          {modoSimulacion ? 'Detener simulación' : 'Simular /prearmado'}
-        </button>
-      </div>
-      </div>
     </>
   );
 }

@@ -1,7 +1,6 @@
-// Equivalente a SensorDataTable.jsx: componente visual para mostrar la imagen de la BD
+// Componente visual para mostrar desde el inicio la imagen guardada en la base de datos
 export default function VisorImagenBD({
-  preArmado,
-  estadoServidor,
+  cargandoImagen,
   imagenInfo,
   srcImagenFinal,
   errorImagen,
@@ -9,9 +8,9 @@ export default function VisorImagenBD({
 }) {
   return (
     <div className="marco-imagen">
-      {!preArmado ? (
+      {cargandoImagen && !imagenInfo ? (
         <p className="mensaje-espera">
-          Esperando cambio de variable en /estado (actual: {estadoServidor ?? 'sin respuesta'})...
+          Cargando imagen desde la base de datos...
         </p>
       ) : !imagenInfo ? (
         <p className="mensaje-espera">
@@ -19,12 +18,12 @@ export default function VisorImagenBD({
         </p>
       ) : errorImagen ? (
         <p className="mensaje-error">
-          ⚠️ No se pudo cargar la imagen desde {srcImagenFinal}.
+          ⚠️ No se pudo cargar la imagen desde {imagenInfo.urlOriginal ?? srcImagenFinal}.
         </p>
       ) : imagenInfo.esBase64 ? (
         <img
           src={srcImagenFinal}
-          alt="Imagen de pre-armado desde la base de datos"
+          alt="Imagen desde la base de datos"
           onError={onErrorImagen}
         />
       ) : (
@@ -36,7 +35,7 @@ export default function VisorImagenBD({
         >
           <img
             src={srcImagenFinal}
-            alt="Imagen de pre-armado desde la base de datos"
+            alt="Imagen desde la base de datos"
             onError={onErrorImagen}
           />
         </a>
