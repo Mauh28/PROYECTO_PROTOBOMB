@@ -34,8 +34,8 @@ public class MyService extends IntentService {
     // Aby 8990981558:AAExkbtqg1JilrYUHVmO-oMA7R3373kQ7Bk 8338452778
     // Isabel 8178912720:AAGbjJ7dC-GM72qG8FVP27D8NlPL8J4GxYo 8988285896
     // mau 8714770526:AAF7xHdHR8hA7mFsGB80_hN7FIB30RC3JOI 2048888975
-    private String botTel = "8178912720:AAGbjJ7dC-GM72qG8FVP27D8NlPL8J4GxYo";
-    private String chatId = "8988285896";
+    private String botTel = "8990981558:AAExkbtqg1JilrYUHVmO-oMA7R3373kQ7Bk";
+    private String chatId = "8338452778";
 
     public MyService() {
         super("MyService");
@@ -65,6 +65,11 @@ public class MyService extends IntentService {
         MyData data = null;
         do {
             data = this.get_updates();
+            if (data == null) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ignored) {}
+            }
         } while (data == null || this.process(data));
     }
 
@@ -76,10 +81,7 @@ public class MyService extends IntentService {
                     + textoCodificado);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-            conn.setDoOutput(true);
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-length", "0");
-
             conn.setUseCaches(false);
             conn.setAllowUserInteraction(false);
             conn.setConnectTimeout(3000);
@@ -135,18 +137,15 @@ public class MyService extends IntentService {
         MyData data = null;
         HttpURLConnection conn = null;
         try {
-            String myUrl = "https://api.telegram.org/bot" + botTel + "/getUpdates?offset=" + offset + "&timeout=0";
+            String myUrl = "https://api.telegram.org/bot" + botTel + "/getUpdates?offset=" + offset + "&timeout=2";
             URL url = new URL(myUrl);
             conn = (HttpURLConnection) url.openConnection();
 
-            conn.setDoOutput(true);
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-length", "0");
-
             conn.setUseCaches(false);
             conn.setAllowUserInteraction(false);
-            conn.setConnectTimeout(3000);
-            conn.setReadTimeout(3000);
+            conn.setConnectTimeout(4000);
+            conn.setReadTimeout(5000);
             conn.connect();
 
             int status = conn.getResponseCode();
@@ -164,13 +163,15 @@ public class MyService extends IntentService {
 
                 this.parser = new MyJSONParser("[" + res + "]");
                 data = this.parser.getValue();
+            } else {
+                Log.w(TAG, "get_updates(): HTTP status=" + status);
             }
             conn.disconnect();
         } catch (MalformedURLException e) {
-            Log.e(TAG, "get_updates(): MalformedURLException", e);
+            Log.e(TAG, "get_updates(): MalformedURLException: " + e.getMessage(), e);
             if (conn != null) conn.disconnect();
         } catch (IOException e) {
-            Log.e(TAG, "get_updates(): IOException", e);
+            Log.e(TAG, "get_updates(): IOException: " + e.getMessage(), e);
             if (conn != null) conn.disconnect();
         }
 
