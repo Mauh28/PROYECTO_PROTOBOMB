@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1760 1005" width="1760" height="1005">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  </style>
+  <defs>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#1e293b"/>
+    </pattern>
+    <marker id="arrow-end" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrow-start" viewBox="0 0 10 10" refX="1.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 10 1 L 1 5 L 10 9 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect x="0" y="0" width="1760" height="1005" rx="16" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+  <rect x="2" y="2" width="1756" height="1001" rx="14" fill="url(#grid)"/>
+
+  <!-- Edges -->
+  <path d="M 750.0 125.0 C 848.0 125.0, 932.0 125.0, 1025.0 125.0" fill="none" stroke="#94a3b8" stroke-width="2.4" marker-end="url(#arrow-end)"/>
+  <rect x="813.8" y="111.0" width="151.2" height="28" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+  <text x="889.4" y="129.5" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">imagen + solución</text>
+  <path d="M 1310.0 125.0 C 1370.0 125.0, 1410.0 125.0, 1465.0 125.0" fill="none" stroke="#94a3b8" stroke-width="2.4" marker-end="url(#arrow-end)"/>
+  <path d="M 1170.0 320.0 C 1170.0 265.0, 1170.0 240.0, 1170.0 185.0" fill="none" stroke="#94a3b8" stroke-width="2.4" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+  <rect x="1022.2" y="238.5" width="295.6" height="28" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+  <text x="1170.0" y="257.0" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">↑ cortes HTTP ↓ consultas de eventos</text>
+  <path d="M 1170.0 595.0 C 1170.0 535.0, 1170.0 495.0, 1170.0 440.0" fill="none" stroke="#94a3b8" stroke-width="2.4" marker-end="url(#arrow-end)"/>
+  <rect x="1075.4" y="501.6" width="189.2" height="28" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+  <text x="1170.0" y="520.1" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">Bluetooth: continuidad</text>
+  <path d="M 1310.0 645.0 C 1430.0 645.0, 1430.0 125.0, 1315.0 125.0" fill="none" stroke="#94a3b8" stroke-width="2.4" marker-end="url(#arrow-end)"/>
+  <rect x="1374.4" y="371.0" width="52.4" height="28" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+  <text x="1400.6" y="389.5" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">HTTP</text>
+  <path d="M 755.0 650.0 C 848.0 650.0, 932.0 645.0, 1025.0 645.0" fill="none" stroke="#94a3b8" stroke-width="2.4" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+  <rect x="814.4" y="633.5" width="151.2" height="28" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+  <text x="890.0" y="652.0" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">lógica en Android</text>
+  <path d="M 275.0 650.0 C 354.0 650.0, 426.0 650.0, 505.0 650.0" fill="none" stroke="#94a3b8" stroke-width="2.4" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+  <rect x="325.8" y="636.0" width="128.4" height="28" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+  <text x="390.0" y="654.5" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">chats privados</text>
+  <path d="M 170.0 705.0 C 170.0 765.0, 170.0 765.0, 170.0 820.0" fill="none" stroke="#94a3b8" stroke-width="2.4" marker-end="url(#arrow-end)"/>
+  <rect x="147.0" y="750.4" width="46.0" height="28" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+  <text x="170.0" y="768.9" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">J2</text>
+
+  <!-- Nodes -->
+  <g>
+    <rect x="70.0" y="595.0" width="200.0" height="110.0" rx="12" fill="#2a1215" stroke="#ef4444" stroke-width="2.5"/>
+    <text x="170.0" y="644.0" font-size="16.5" font-weight="700" font-style="normal" fill="#f8fafc" text-anchor="middle">J1 y J2</text>
+    <text x="170.0" y="666.0" font-size="13" font-weight="400" font-style="italic" fill="#cbd5e1" text-anchor="middle">(Jugadores)</text>
+  </g>
+  <g>
+    <rect x="1030.0" y="595.0" width="280.0" height="100.0" rx="12" fill="#21142e" stroke="#a855f7" stroke-width="2.5"/>
+    <text x="1170.0" y="628.0" font-size="16.5" font-weight="700" font-style="normal" fill="#f8fafc" text-anchor="middle">App Android</text>
+    <text x="1170.0" y="650.0" font-size="13" font-weight="400" font-style="italic" fill="#cbd5e1" text-anchor="middle">(MOD A — Puente BT / HTTP)</text>
+    <text x="1170.0" y="672.0" font-size="13" font-weight="400" font-style="italic" fill="#cbd5e1" text-anchor="middle">(lógica del bot alojada en Android)</text>
+  </g>
+  <g>
+    <rect x="1030.0" y="70.0" width="280.0" height="110.0" rx="12" fill="#0f2618" stroke="#22c55e" stroke-width="2.5"/>
+    <text x="1170.0" y="119.0" font-size="16.5" font-weight="700" font-style="normal" fill="#f8fafc" text-anchor="middle">Node.js + MySQL</text>
+    <text x="1170.0" y="141.0" font-size="13" font-weight="400" font-style="italic" fill="#cbd5e1" text-anchor="middle">(MOD E — Servidor Web)</text>
+  </g>
+  <g>
+    <rect x="1470.0" y="70.0" width="220.0" height="110.0" rx="12" fill="#0c242b" stroke="#06b6d4" stroke-width="2.5"/>
+    <text x="1580.0" y="119.0" font-size="16.5" font-weight="700" font-style="normal" fill="#f8fafc" text-anchor="middle">HUD web de J1</text>
+    <text x="1580.0" y="141.0" font-size="13" font-weight="400" font-style="italic" fill="#cbd5e1" text-anchor="middle">(MOD F — React)</text>
+  </g>
+  <g>
+    <rect x="510.0" y="595.0" width="240.0" height="110.0" rx="12" fill="#0c242b" stroke="#06b6d4" stroke-width="2.5"/>
+    <text x="630.0" y="644.0" font-size="16.5" font-weight="700" font-style="normal" fill="#f8fafc" text-anchor="middle">Bot de Telegram</text>
+    <text x="630.0" y="666.0" font-size="13" font-weight="400" font-style="italic" fill="#cbd5e1" text-anchor="middle">(MOD D — Lógica en Android)</text>
+  </g>
+  <g>
+    <rect x="510.0" y="70.0" width="240.0" height="110.0" rx="12" fill="#27210c" stroke="#eab308" stroke-width="2.5"/>
+    <text x="630.0" y="119.0" font-size="16.5" font-weight="700" font-style="normal" fill="#f8fafc" text-anchor="middle">Python</text>
+    <text x="630.0" y="141.0" font-size="13" font-weight="400" font-style="italic" fill="#cbd5e1" text-anchor="middle">(MOD B — Generador)</text>
+  </g>
+  <g>
+    <rect x="70.0" y="825.0" width="200.0" height="110.0" rx="12" fill="#0c242b" stroke="#06b6d4" stroke-width="2.5"/>
+    <text x="170.0" y="874.0" font-size="16.5" font-weight="700" font-style="normal" fill="#f8fafc" text-anchor="middle">Manual web estático</text>
+    <text x="170.0" y="896.0" font-size="13" font-weight="400" font-style="italic" fill="#cbd5e1" text-anchor="middle">(MOD F2 — React)</text>
+  </g>
+  <g>
+    <rect x="1030.0" y="325.0" width="280.0" height="110.0" rx="12" fill="#2b190d" stroke="#f97316" stroke-width="2.5"/>
+    <text x="1170.0" y="374.0" font-size="16.5" font-weight="700" font-style="normal" fill="#f8fafc" text-anchor="middle">ESP32 + buzzer</text>
+    <text x="1170.0" y="396.0" font-size="13" font-weight="400" font-style="italic" fill="#cbd5e1" text-anchor="middle">(MOD C — Hardware)</text>
+  </g>
+</svg>

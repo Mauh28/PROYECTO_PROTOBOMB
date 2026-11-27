@@ -11,20 +11,7 @@ Protobomb es un juego escolar cooperativo para dos personas. Una monta cinco cab
 
 ## Arquitectura
 
-```text
-Python ── imagen + solución ──> Node.js + MySQL ──> HUD web de J1
-                                    ^    |
-                        cortes HTTP |    | consultas de eventos
-                                    |    v
-                                  ESP32 + buzzer
-                                    ^
-                                    | Bluetooth: continuidad
-                                    |
-J1 y J2 <── chats privados ──> Bot <──> App Android ── HTTP ──> Node.js
-                                 (lógica del bot alojada en Android)
-
-J2 ──> Manual web estático
-```
+![Arquitectura del proyecto](./docs/arquitectura.svg)
 
 ## Estructura del modulo ARD/ESP32
 

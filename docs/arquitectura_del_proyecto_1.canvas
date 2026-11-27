@@ -1,0 +1,22 @@
+{
+	"nodes":[
+		{"id":"a91c3e5f7b2d4018","type":"text","text":"**J1 y J2**\n*(Jugadores)*","x":-960,"y":290,"width":200,"height":110,"color":"1"},
+		{"id":"f0ea24a7bffc4811","type":"text","text":"**App Android**\n*(MOD A — Puente BT / HTTP)*\n*(lógica del bot alojada en Android)*","x":0,"y":290,"width":280,"height":100,"color":"6"},
+		{"id":"0b1e104f2b90e98f","type":"text","text":"**Node.js + MySQL**\n*(MOD E — Servidor Web)*","x":0,"y":-235,"width":280,"height":110,"color":"4"},
+		{"id":"ff45c6e13e6d87f2","type":"text","text":"**HUD web de J1**\n*(MOD F — React)*","x":440,"y":-235,"width":220,"height":110,"color":"5"},
+		{"id":"814ca6650d108c84","type":"text","text":"**Bot de Telegram**\n*(MOD D — Lógica en Android)*","x":-520,"y":290,"width":240,"height":110,"color":"5"},
+		{"id":"fb5f4d83ba991443","type":"text","text":"**Python**\n*(MOD B — Generador)*","x":-520,"y":-235,"width":240,"height":110,"color":"3"},
+		{"id":"b72e4f6a8c3e5129","type":"text","text":"**Manual web estático**\n*(MOD F2 — React)*","x":-960,"y":520,"width":200,"height":110,"color":"5"},
+		{"id":"4fb3a5c15f7ddf51","type":"text","text":"**ESP32 + buzzer**\n*(MOD C — Hardware)*","x":0,"y":20,"width":280,"height":110,"color":"2"}
+	],
+	"edges":[
+		{"id":"a015a521e7bcafe4","fromNode":"fb5f4d83ba991443","fromSide":"right","toNode":"0b1e104f2b90e98f","toSide":"left","label":"imagen + solución"},
+		{"id":"321f216dcf30f23c","fromNode":"0b1e104f2b90e98f","fromSide":"right","toNode":"ff45c6e13e6d87f2","toSide":"left"},
+		{"id":"a2e1e49379ce3428","fromNode":"4fb3a5c15f7ddf51","fromSide":"top","toNode":"0b1e104f2b90e98f","toSide":"bottom","fromEnd":"arrow","label":"↑ cortes HTTP ↓ consultas de eventos"},
+		{"id":"c4e8a1b2d3f40516","fromNode":"f0ea24a7bffc4811","fromSide":"top","toNode":"4fb3a5c15f7ddf51","toSide":"bottom","label":"Bluetooth: continuidad"},
+		{"id":"d5f9b2c3e4a51627","fromNode":"f0ea24a7bffc4811","fromSide":"right","toNode":"0b1e104f2b90e98f","toSide":"right","label":"HTTP"},
+		{"id":"e6a0c3d4f5b62738","fromNode":"814ca6650d108c84","fromSide":"right","toNode":"f0ea24a7bffc4811","toSide":"left","fromEnd":"arrow","label":"lógica en Android"},
+		{"id":"f7b1d4e5a6c73849","fromNode":"a91c3e5f7b2d4018","fromSide":"right","toNode":"814ca6650d108c84","toSide":"left","fromEnd":"arrow","label":"chats privados"},
+		{"id":"08c2e5f6b7d8495a","fromNode":"a91c3e5f7b2d4018","fromSide":"bottom","toNode":"b72e4f6a8c3e5129","toSide":"top","label":"J2"}
+	]
+}
