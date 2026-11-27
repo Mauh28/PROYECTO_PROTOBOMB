@@ -54,7 +54,7 @@ public class MiPeticionREST extends AsyncTask<String,String,String> {
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
 
-                String input = "{" + "\"id\": \"0\", " + "\"dato\": \"1\", " + "\"segundo\": \"-2\"" + "}";
+                String input = "{\"F1\": 1, \"F2\": 1, \"F3\": 1, \"F4\": 1}";
                 OutputStream os = conn.getOutputStream();
                 os.write(input.getBytes());
                 os.flush();
