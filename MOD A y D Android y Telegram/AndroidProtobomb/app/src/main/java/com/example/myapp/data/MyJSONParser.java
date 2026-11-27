@@ -44,11 +44,16 @@ public class MyJSONParser {
 
             for(int i = 0; i < result.length(); ++i){
                 JSONObject update = result.getJSONObject(i);
-                int update_id = update.getInt("update_id");
-                JSONObject message = update.getJSONObject("message");
-                msg = message.getString("text");
-                data.update_id.add(update_id);
-                data.msg.add(msg);
+                int update_id = update.optInt("update_id", -1);
+                JSONObject message = update.optJSONObject("message");
+                if (message == null) {
+                    message = update.optJSONObject("edited_message");
+                }
+                msg = (message != null) ? message.optString("text", "") : "";
+                if (update_id != -1) {
+                    data.update_id.add(update_id);
+                    data.msg.add(msg);
+                }
             }
         }catch(JSONException e){
             Log.e("JSON-PARSER", e.getMessage());

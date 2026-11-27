@@ -24,9 +24,10 @@ public class GeminiNLP {
             return "";
         }
 
-        // Si no hay API Key configurada, devuelve el texto en mayusculas
-        if (GEMINI_API_KEY == null || GEMINI_API_KEY.trim().isEmpty()) {
-            Log.w(TAG, "API Key vacia, usando texto original");
+        // Si no hay API Key configurada (o sigue el placeholder), devuelve el texto en mayusculas
+        if (GEMINI_API_KEY == null || GEMINI_API_KEY.trim().isEmpty()
+                || GEMINI_API_KEY.equals("TU_API_KEY_AQUI")) {
+            Log.w(TAG, "API Key no configurada, usando texto original");
             return mensajeUsuario.toUpperCase();
         }
 
