@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <EditText
+        android:id="@+id/etMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="40dp"
+        />
+
+    <Button
+        android:id="@+id/btSend"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SEND"
+        android:onClick="onSend"
+        />
+
+    <Button
+        android:id="@+id/btUpdate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="UPDATE"
+        android:onClick="onUpdate"
+        />
+
+    <Button
+        android:id="@+id/btPost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="POST"
+        android:onClick="onPost"
+        />
+
+    <Button
+        android:id="@+id/btParser"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=">> JSON"
+        android:onClick="onJSON"
+        />
+
+    <Button
+        android:id="@+id/btService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Init Service"
+        android:onClick="onService"
+        />
+
+    <TextView
+        android:id="@+id/tvResponse"
+        android:text="Response"
+        android:textSize="40dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+
+        <TextView
+            android:id="@+id/A1"
+            android:text="A"
+            android:textSize="40dp"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="75"
+        />
+
+        <TextView
+            android:id="@+id/A2"
+            android:text="B"
+            android:textSize="40dp"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="25"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>
