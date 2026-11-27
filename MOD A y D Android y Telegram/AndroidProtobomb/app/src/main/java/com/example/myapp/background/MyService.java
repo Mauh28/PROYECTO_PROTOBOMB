@@ -28,7 +28,7 @@ public class MyService extends IntentService {
 
     private ConectarMiBluetooth bt_connect = null;
     private ComunicarConBluetooth bt_comm = null;
-    private String serverIp = "172.16.186.170";
+    private String serverIp = "172.16.184.225";
 
     // Configuracion de Telegram
     // Aby 8990981558:AAExkbtqg1JilrYUHVmO-oMA7R3373kQ7Bk 8338452778
@@ -56,10 +56,10 @@ public class MyService extends IntentService {
                 this.send("Conectado por Bluetooth a " + devName + ". A la espera del comando Iniciar...");
             } else {
                 bt_comm = null;
-                this.send("ALERTA: No se pudo conectar por Bluetooth con " + devName + ". Verifique que esté encendido y emparejado.");
+                this.send("ALERTA: No se pudo conectar por Bluetooth con " + devName + ". Verifique que estÃ© encendido y emparejado.");
             }
         } else {
-            this.send("ALERTA: No se recibió ningún dispositivo Bluetooth.");
+            this.send("ALERTA: No se recibiÃ³ ningÃºn dispositivo Bluetooth.");
         }
 
         MyData data = null;
@@ -198,14 +198,14 @@ public class MyService extends IntentService {
             // Unicamente atendemos el comando INICIAR, cualquier otro se ignora
             if (msgUpper.equals("INICIAR") || msgTrim.toUpperCase().contains("INICIAR")) {
                 if (bt_comm == null || !bt_comm.isConnected()) {
-                    this.send("Error: Bluetooth desconectado de Arduino. Verifique la conexión.");
+                    this.send("Error: Bluetooth desconectado de Arduino. Verifique la conexiÃ³n.");
                     continue;
                 }
 
                 this.send("Verificando armado con Arduino...");
 
-                // Limpiar respuestas residuales en la cola antes de nueva consulta
-                bt_comm.flushResponseQueue();
+                // Limpiar cualquier byte residual previo
+                bt_comm.flushInputStream();
 
                 // Enviar comando INICIAR con salto de linea requerido por Arduino
                 boolean enviado = bt_comm.write("INICIAR\n");
@@ -221,12 +221,12 @@ public class MyService extends IntentService {
                 String respUpper = respuestaArduino.toUpperCase().trim();
                 if (respUpper.contains("TRUE") || respUpper.equals("1")) {
                     // True: se armo correctamente y se envia al servidor estado=1
-                    this.send("Se armó correctamente.");
+                    this.send("Se armÃ³ correctamente.");
                     boolean srvOk = enviarEstadoAlServidor(1);
                     if (srvOk) {
                         this.send("Servidor notificado: estado=1.");
                     } else {
-                        this.send("Aviso: Armado correcto, pero falló la notificación al servidor.");
+                        this.send("Aviso: Armado correcto, pero fallÃ³ la notificaciÃ³n al servidor.");
                     }
                     return false;
                 } else if (respUpper.contains("FALSE") || respUpper.equals("0")) {
@@ -234,7 +234,7 @@ public class MyService extends IntentService {
                     this.send("Verifique el armado correcto.");
                 } else if (respuestaArduino.isEmpty()) {
                     // Tiempo agotado sin respuesta
-                    this.send("Sin respuesta de Arduino (Tiempo agotado). Verifique las conexiones físicas TX/RX de Arduino.");
+                    this.send("Sin respuesta de Arduino (Tiempo agotado). Verifique las conexiones fÃ­sicas TX/RX de Arduino.");
                 } else {
                     this.send("Respuesta de Arduino: [" + respuestaArduino + "]. Verifique el armado.");
                 }
