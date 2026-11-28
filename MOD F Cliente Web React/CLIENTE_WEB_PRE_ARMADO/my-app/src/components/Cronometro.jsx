@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
 
-// Cronómetro en vivo que inicia en 00:00 cuando Android activa el cambio de estado
+const DURACION_INICIAL_SEGUNDOS = 60;
+
+// Cronómetro decreciente que inicia en 01:00 cuando Android activa el cambio de estado
 export default function Cronometro() {
-  const [segundos, setSegundos] = useState(0);
+  const [segundos, setSegundos] = useState(DURACION_INICIAL_SEGUNDOS);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setSegundos((prev) => prev + 1);
+      setSegundos((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);

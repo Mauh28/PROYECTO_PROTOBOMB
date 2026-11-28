@@ -1,5 +1,5 @@
 // export const BASE_URL = 'http://localhost:3010';
-export const BASE_URL = import.meta.env?.VITE_SERVER_URL || 'http://localhost:3010';
+export const BASE_URL = import.meta.env?.VITE_SERVER_URL || 'http://172.16.184.225:3010';
 // Se consulta sin parámetros (?estado=...) para no sobrescribir la variable del servidor
 export const ESTADO_URL = `${BASE_URL}/estado`;
 export const API_ESTADO_URL = `${BASE_URL}/api/estado`;
