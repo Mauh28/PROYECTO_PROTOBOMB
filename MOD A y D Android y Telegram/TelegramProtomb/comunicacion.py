@@ -1,13 +1,12 @@
-from flask import Flask, request, jsonify
-import threading, time, requests
+import time, requests
 
-app = Flask(__name__)
-
-TOKEN = "TU_NUEVO_TOKEN"
+TOKEN = "8178912720:AAGbjJ7dC-GM72qG8FVP27D8NlPL8J4GxYo"  #
 TG_URL = f"https://api.telegram.org/bot{TOKEN}"
+SERVIDOR_URL = "http://172.16.184.225:3010/estado"
 
-ID_ARTIFICIERO = 8338452778
-ID_EXPERTO = 8988285896
+# IDs de los jugadores (Artificiero con protoboard y Experto a la espera)
+ID_ARTIFICIERO = 8338452778  # Quien manda INICIAR[cite: 2]
+ID_EXPERTO = 8988285896      # Quien espera el inicio de comunicacion[cite: 2]
 
 pareja = {
     ID_ARTIFICIERO: ID_EXPERTO,
@@ -16,43 +15,23 @@ pareja = {
 
 bridge_activo = False
 
-def enviar_tg(chat_id, texto, reply_markup=None):
-    payload = {
-        "chat_id": chat_id,
-        "text": texto,
-        "parse_mode": "HTML"
-    }
-    if reply_markup:
-        payload["reply_markup"] = reply_markup
-    requests.post(f"{TG_URL}/sendMessage", json=payload)
+def enviar_tg(chat_id, texto):
+    requests.post(f"{TG_URL}/sendMessage", json={"chat_id": chat_id, "text": texto})
 
 def bucle_intermediario():
     global bridge_activo
     
+    # 1. Limpiar cola de mensajes viejos (ej. el INICIAR que ya proceso Android)[cite: 2]
     offset = -1
     init_res = requests.get(f"{TG_URL}/getUpdates", params={"offset": -1}).json()
     if init_res.get("result"):
         offset = init_res["result"][-1]["update_id"] + 1
 
-    teclado_art = {
-        "keyboard": [
-            [{"text": "🔴 Rojo"}, {"text": "🔵 Azul"}, {"text": "🟡 Amarillo"}, {"text": "⚪ Blanco"}],
-            [{"text": "❓ ¿Qué hago?"}, {"text": "✅ Hecho, ¿qué sigue?"}, {"text": "🔄 Repite"}]
-        ],
-        "resize_keyboard": True
-    }
+    # 2. Notificar a ambos jugadores (despierta al Experto que estaba en espera)
+    enviar_tg(ID_ARTIFICIERO, "💣 Canal abierto. Ya puedes comunicarte con el Experto.")
+    enviar_tg(ID_EXPERTO, "🚨 ¡Bomba armada! El Artificiero está en línea. Comienza el desarmado.")
 
-    teclado_exp = {
-        "keyboard": [
-            [{"text": "🛑 ¡ALTO! No toques nada"}, {"text": "📖 Buscando en manual..."}],
-            [{"text": "🎨 Dime colores en orden"}, {"text": "✂️ Procede con el corte"}]
-        ],
-        "resize_keyboard": True
-    }
-
-    enviar_tg(ID_ARTIFICIERO, "💣 <b>CANAL ABIERTO</b>\nDescribe lo que ves en la protoboard al Experto.", teclado_art)
-    enviar_tg(ID_EXPERTO, "🚨 <b>¡BOMBA ARMADA!</b>\nEl Artificiero está en línea. Guíalo con el manual.", teclado_exp)
-
+    # 3. Escuchar y reenviar mensajes entre ambos
     while bridge_activo:
         try:
             r = requests.get(f"{TG_URL}/getUpdates", params={"offset": offset, "timeout": 10}).json()
@@ -60,39 +39,31 @@ def bucle_intermediario():
                 offset = update["update_id"] + 1
                 msg = update.get("message", {})
                 remitente = msg.get("chat", {}).get("id")
+                texto = msg.get("text", "")
 
-                if remitente in pareja:
+                if remitente in pareja and texto:
                     destinatario = pareja[remitente]
-                    rol = "💣 <b>[Artificiero]</b>" if remitente == ID_ARTIFICIERO else "📘 <b>[Experto]</b>"
-
-                    if "text" in msg:
-                        # Escapar caracteres HTML básicos para evitar errores de formato
-                        texto_seguro = msg["text"].replace("<", "&lt;").replace(">", "&gt;")
-                        enviar_tg(destinatario, f"{rol}: {texto_seguro}")
-                    else:
-                        # Feedback inmediato si intentan mandar fotos, audios o stickers
-                        enviar_tg(remitente, "🚫 <i>Solo se permite texto. Describe la información con tus propias palabras.</i>")
-
+                    rol = "💣 [Artificiero]" if remitente == ID_ARTIFICIERO else "📘 [Experto]"
+                    enviar_tg(destinatario, f"{rol}: {texto}")
         except Exception as e:
             print("Error en polling:", e)
             time.sleep(1)
 
-@app.route("/estado", methods=["POST"])
-def recibir_estado():
-    global bridge_activo
-    data = request.get_json() or {}
-    estado = data.get("estado")
-
-    if estado == 1 and not bridge_activo:
-        bridge_activo = True
-        threading.Thread(target=bucle_intermediario, daemon=True).start()
-    elif estado == 0 and bridge_activo:
-        bridge_activo = False
-        limpiar = {"remove_keyboard": True}
-        enviar_tg(ID_ARTIFICIERO, "🏁 <b>PARTIDA FINALIZADA</b>\nCanal cerrado.", limpiar)
-        enviar_tg(ID_EXPERTO, "🏁 <b>PARTIDA FINALIZADA</b>\nCanal cerrado.", limpiar)
-
-    return jsonify({"ok": True}), 200
+def esperar_estado_inicio():
+    print(f"Esperando estado=1 en {SERVIDOR_URL}...")
+    while True:
+        try:
+            r = requests.get(SERVIDOR_URL, timeout=3)
+            if r.status_code == 200:
+                data = r.json()
+                if data.get("estado") == 1 or data.get("juegoIniciado") is True:
+                    print("Estado=1 detectado! Iniciando puente de Telegram...")
+                    return
+        except Exception as e:
+            print("Error consultando /estado:", e)
+        time.sleep(1)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3010)
+    esperar_estado_inicio()
+    bridge_activo = True
+    bucle_intermediario()
